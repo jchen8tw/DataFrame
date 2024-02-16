@@ -40,16 +40,30 @@ target_compile_definitions(
     PRIVATE $<$<BOOL:${HMDF_HAVE_CLOCK_GETTIME}>:HMDF_HAVE_CLOCK_GETTIME>
     PUBLIC $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
 )
+
 target_compile_options(
     DataFrame
     PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/bigobj>
             $<$<CXX_COMPILER_ID:MSVC>:/wd4251>
-            $<$<CXX_COMPILER_ID:MSVC>:/MTd>
     # TODO: fix these warnings
     PUBLIC $<$<CXX_COMPILER_ID:MSVC>:/wd4244>
            $<$<CXX_COMPILER_ID:MSVC>:/wd4267>
            $<$<CXX_COMPILER_ID:MSVC>:/wd4996>
 )
+if(MSVC)
+    foreach(flag_var
+            CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+            CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+        STRING (REGEX REPLACE "/RTC(su|[1su])" "" ${flag_var} "${${flag_var}}")
+    endforeach(flag_var)
+    target_compile_options(
+        DataFrame
+        PRIVATE /MT /O2
+    )
+endif()
+
+
+
 set_target_properties(
     DataFrame
     PROPERTIES VERSION ${PROJECT_VERSION} SOVERSION ${PROJECT_VERSION_MAJOR}
@@ -157,3 +171,4 @@ endif()
 if(HMDF_BENCHMARKS)
     add_subdirectory(benchmarks)
 endif()
+
